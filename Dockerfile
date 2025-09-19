@@ -37,7 +37,7 @@
   #     && rm -rf /var/lib/apt/lists/*
 
   # Create non-root user
-  RUN useradd --create-home appuser
+  # RUN useradd --create-home appuser
   WORKDIR /app
 
   # Copy Python packages from builder stage
@@ -48,7 +48,7 @@
   COPY --chown=appuser:appuser . .
 
   # Switch to non-root user
-  USER appuser
+  # USER appuser
 
   # Health check
   HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
