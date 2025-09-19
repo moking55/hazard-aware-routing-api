@@ -30,16 +30,80 @@ route_optimization/
 - **Caching**: Intelligent caching of OSM graphs and route results
 - **RESTful API**: Clean, documented endpoints with FastAPI
 
-## 📦 Installation
+## 📦 Installation & Deployment
+
+### Local Development
 
 1. Install dependencies:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 2. Run the development server:
+
 ```bash
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### Docker Deployment
+
+#### Quick Start with Docker Compose
+
+```bash
+# Clone and navigate to project
+cd route_optimization
+
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+#### Manual Docker Build
+
+```bash
+# Build development image
+docker build -t hazard-routing-api .
+
+# Build production image
+docker build -t hazard-routing-api:prod -f Dockerfile.prod .
+
+# Run container
+docker run -p 8000:8000 hazard-routing-api
+```
+
+#### Windows Build Script
+
+```cmd
+# Build with default settings
+build.bat
+
+# Build with custom tag
+build.bat v1.0.0
+
+# Build production image
+build.bat prod Dockerfile.prod
+```
+
+#### Linux/Mac Build Script
+
+```bash
+# Make script executable
+chmod +x build.sh
+
+# Build with default settings
+./build.sh
+
+# Build with custom tag
+./build.sh v1.0.0
+
+# Build production image
+./build.sh prod Dockerfile.prod
 ```
 
 3. Access the API:
@@ -119,4 +183,32 @@ curl -X POST "http://localhost:8000/hazards" \
 2. **Authentication**: Add API key or OAuth2 authentication
 3. **Rate Limiting**: Implement request throttling
 4. **Monitoring**: Add logging, metrics, and health checks
-5. **Deployment**: Containerize with Docker and use production WSGI server
+5. **Deployment**: Use production WSGI server with multiple workers
+
+## 🐳 Docker Configuration
+
+### Available Dockerfiles
+
+- **`Dockerfile`**: Multi-stage development build with all tools
+- **`Dockerfile.prod`**: Optimized production build with minimal layers
+
+### Docker Compose Services
+
+- **route-api**: Main FastAPI application
+- **redis**: Optional caching layer (commented)
+- **postgres**: Optional database backend (commented)
+
+### Environment Variables
+
+- `PYTHONPATH`: Set to `/app`
+- `LOG_LEVEL`: Logging level (INFO, DEBUG, WARNING, ERROR)
+- `WORKERS`: Number of Uvicorn workers (production)
+- `MAX_WORKERS`: Maximum worker limit
+
+### Health Checks
+
+The Docker containers include health checks that:
+- Test the `/health` endpoint every 30 seconds
+- Allow 40 seconds for startup
+- Retry 3 times before marking unhealthy
+- Timeout after 10 seconds per check

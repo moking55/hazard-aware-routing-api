@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # Main API service
+  route-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hazard-routing-api
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      - LOG_LEVEL=INFO
+    volumes:
+      # Mount source code for development (comment out for production)
+      - .:/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8000/health', timeout=10)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Redis for caching (uncomment if needed)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: hazard-routing-redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
+  #   command: redis-server --appendonly yes
+
+  # Optional: PostgreSQL database (uncomment if needed)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: hazard-routing-db
+  #   environment:
+  #     POSTGRES_DB: routing
+  #     POSTGRES_USER: routinguser
+  #     POSTGRES_PASSWORD: routingpass
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   restart: unless-stopped
+
+# Uncomment if using Redis or PostgreSQL
+# volumes:
+#   redis_data:
+#   postgres_data:
+
+networks:
+  default:
+    name: hazard-routing-network

@@ -1,0 +1,46 @@
+# Production Dockerfile for Hazard-Aware Routing API
+FROM python:3.11-slim
+
+# Set environment variables for production
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    WORKERS=4 \
+    MAX_WORKERS=8
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libgdal28 \
+    libspatialindex6 \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash --user-group apiuser
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Change ownership to non-root user
+RUN chown -R apiuser:apiuser /app
+
+# Switch to non-root user
+USER apiuser
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD python -c "import requests; requests.get('http://localhost:8000/health', timeout=10)" || exit 1
+
+# Production command with Gunicorn
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
