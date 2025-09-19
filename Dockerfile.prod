@@ -7,30 +7,25 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     WORKERS=4 \
-    MAX_WORKERS=8
+    MAX_WORKERS=8 \
+    PYTHONPATH=/app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    libgdal28 \
-    libspatialindex6 \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
-
-# Create non-root user
-RUN useradd --create-home --shell /bin/bash --user-group apiuser
-
-# Set working directory
 WORKDIR /app
 
-# Copy requirements and install dependencies
+# Install system dependencies and create user in one step
+RUN apt-get update && apt-get install -y \
+    libgdal30 \
+    libspatialindex6 \
+    curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd --create-home --shell /bin/bash --user-group apiuser
+
+# Copy requirements and install dependencies directly (no venv)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt gunicorn
 
-# Copy application code
-COPY . .
-
-# Change ownership to non-root user
-RUN chown -R apiuser:apiuser /app
+# Copy application code and set permissions
+COPY --chown=apiuser:apiuser . .
 
 # Switch to non-root user
 USER apiuser

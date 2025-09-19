@@ -122,8 +122,8 @@ class RoutingService:
                 graph, X=end_coord.lon, Y=end_coord.lat
             )
         except:
-            start_node = ox.get_nearest_node(graph, (start_coord.lat, start_coord.lon))
-            end_node = ox.get_nearest_node(graph, (end_coord.lat, end_coord.lon))
+            start_node = ox.nearest_nodes(graph, )
+            end_node = ox.nearest_nodes(graph, (end_coord.lat, end_coord.lon))
         
         if start_node not in graph.nodes or end_node not in graph.nodes:
             raise HTTPException(
